@@ -1,0 +1,34 @@
+---
+description: Dominio de cobranza — deudas, saldos y fechas en ViewModels o PaymentCalculator, nunca en Views
+alwaysApply: true
+---
+
+# Cálculos de negocio (fuera de la UI)
+
+Fórmulas canónicas (PRD / spec 06):
+
+- Total esperado = 6 importes (default **$11,549** = 700 + 250 + 3×1200 + 6999).
+- Pagado = binarios al 100% + `min(abonoCert, topeCert)`.
+- Saldo = esperado − pagado. Liquidado si saldo = 0.
+- Vencido: cargo no cubierto y `startOfDay(fecha) < startOfDay(now)`.
+- Col N vence inscripción + N **meses**. Certificación = inscripción + **12 semanas** (01/03/2026 → 24/05/2026).
+- Cadencia (7d / 15d / 1 mes) solo propone `fechaProximoPago`; no parte los $1,200.
+- Abono de certificación: clamp 0…tope. Sin abonos a matrícula/guía/colegiaturas.
+
+La lógica vive en **`PaymentCalculator`** (capa pura) y/o **ViewModels**. Views y Services no reimplementan.
+
+```swift
+// DON'T — en una View o en un Service de CSV
+let saldo = alumno.importeMatricula + alumno.importeGuia - alumno.certificacionAbonado
+
+// DO
+enum PaymentCalculator {
+    static func saldo(of a: Alumno) -> Decimal { totalEsperado(of: a) - totalPagado(of: a) }
+    static func fechaCertificacion(from inscripcion: Date, calendar: Calendar) -> Date {
+        calendar.date(byAdding: .weekOfYear, value: 12, to: inscripcion) ?? inscripcion
+    }
+    static func clampAbono(_ value: Decimal, cap: Decimal) -> Decimal {
+        min(max(value, 0), cap)
+    }
+}
+```

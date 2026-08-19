@@ -1,0 +1,33 @@
+---
+description: XCTest — SwiftData in-memory, cálculos de colegiatura y certificación
+globs: "**/*Tests.swift,**/Tests/**/*.swift,**/*Tests/**/*.swift"
+alwaysApply: false
+---
+
+# Testing XCTest
+
+Qué se testea: `PaymentCalculator`, ViewModels (alta, filtros, KPIs), CSV parser, WhatsApp URL builder. No UI snapshot salvo que la spec lo pida.
+
+- **Obligatorio:** `ModelConfiguration(isStoredInMemoryOnly: true)`. Nunca el store del simulador/dispositivo.
+- Fija `now`, `Calendar` y `TimeZone(identifier: "America/Mexico_City")` en tests de fechas.
+- Mínimo de dominio: total $11,549; matrícula+guía = $950; abono cert clamp $6,999; col1 vencida; certificación 01/03/2026 → 24/05/2026; cadencia semanal +7 días; liquidado ≠ al día.
+- Mockea `NotificationScheduling` y el opener de WhatsApp. No llames `UNUserNotificationCenter` real ni `UIApplication` en unit tests.
+
+```swift
+// DON'T
+let container = try ModelContainer(for: Alumno.self)
+XCTAssertFalse(PaymentCalculator.estaVencido(of: alumno, now: .now))
+
+// DO
+@MainActor
+func makeInMemoryContainer() throws -> ModelContainer {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    return try ModelContainer(for: Alumno.self, configurations: config)
+}
+
+func testColegiaturaYCertificacion() {
+    XCTAssertEqual(PaymentCalculator.totalEsperadoDefaults, 11_549)
+    XCTAssertEqual(PaymentCalculator.totalPagado(matricula: true, guia: true, abono: 0), 950)
+    XCTAssertEqual(PaymentCalculator.clampAbono(8_000, cap: 6_999), 6_999)
+}
+```
