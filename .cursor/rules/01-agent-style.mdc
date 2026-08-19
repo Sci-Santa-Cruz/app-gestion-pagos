@@ -1,0 +1,22 @@
+---
+description: Estilo de agentes — una spec, commits pequeños, .xcodeproj solo con justificación
+alwaysApply: true
+---
+
+# Estilo de cambios (agentes)
+
+Fuente: `docs/prds/PRD_Control_Escolar_Nova_Impulsa.md` y la spec activa en `docs/specs/`. App iPhone, Swift/SwiftUI/SwiftData, MVVM, offline.
+
+- Implementa **solo** la spec indicada (`01`–`10`). No adelantes CSV, WhatsApp, alarmas ni edición si no tocan esa spec.
+- No agregues backend, CloudKit, login, iPad, `.xlsx`, app Reloj ni abonos a colegiatura.
+- Commits pequeños, un tema por commit. No hagas commit/push salvo que te lo pidan.
+- No edites archivos fuera del alcance de la spec.
+- **No** modifiques `*.xcodeproj` / `project.pbxproj` sin **justificarlo** en la respuesta (por qué es imprescindible y qué cambia). Si puedes, pide que el humano agregue el archivo en Xcode.
+
+```swift
+// DON'T — spec 03 (dashboard) e implementas import CSV
+Button("Importar") { try CSVImporter.run(url) }
+
+// DO
+Button("Importar") { /* spec 10 */ }
+```

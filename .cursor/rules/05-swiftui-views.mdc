@@ -1,0 +1,40 @@
+---
+description: SwiftUI — @State @Binding @Environment, subvistas, iPhone
+globs: "**/*View.swift,**/Views/**/*.swift"
+alwaysApply: false
+---
+
+# Componentes SwiftUI
+
+- Extrae subvistas (`KPICard`, `StudentRowView`) si el archivo supera ~150 líneas.
+- `@State`: UI local (alert, sheet, query de búsqueda si no está en el VM).
+- `@Binding`: estado que el padre posee y el hijo edita (DatePicker de alarma, campos del form extraído).
+- `@Environment(\.modelContext)` y `@Query` en contenedores (Dashboard, form). Las filas reciben **valores** o bindings, no el store.
+- Un solo scroll en dashboard. `NavigationStack`, no SplitView de iPad.
+- Español MX. Fechas `dd/MM/yyyy`. Moneda con `Formatters`.
+- Borrar: `.alert` con nombre + matrícula; no swipe sin confirmación.
+- No calcules saldo/KPI en `body`.
+
+```swift
+// DON'T
+struct DashboardView: View {
+    @State var alumnos: [Alumno] = []
+    var body: some View {
+        Text("Por cobrar \(alumnos.reduce(0) { $0 + $1.importeCol1 })")
+    }
+}
+
+// DO
+struct StudentFormView: View {
+    @Binding var nombre: String
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        TextField("Nombre completo", text: $nombre)
+    }
+}
+
+struct KPIGrid: View {
+    let kpis: CarteraKPIs
+    var body: some View { KPICard(title: "Por cobrar", value: kpis.porCobrarText) }
+}
+```

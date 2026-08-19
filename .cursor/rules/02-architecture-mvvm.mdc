@@ -1,0 +1,40 @@
+---
+description: Arquitectura MVVM — Models SwiftData, Views SwiftUI, ViewModels; sin lógica en la UI
+alwaysApply: true
+---
+
+# Arquitectura de la app
+
+Carpetas: `App/`, `Models/`, `ViewModels/`, `Views/`, `Services/`, `Utilities/`.
+
+| Capa | Responsabilidad |
+|------|-----------------|
+| **Models** | Persistencia SwiftData. Un `@Model`: `Alumno` con pagos **aplanados**. Sin `@Model Pago`. Matrícula única. Dinero: `Decimal` o centavos `Int`, nunca `Double`. Sin CloudKit ni baja lógica. |
+| **Views** | Layout, navegación, binding. Cero fórmulas de cartera. |
+| **ViewModels** (`@Observable`) | Validación, filtros, KPIs (sobre **todo** el padrón), orquestación. |
+| **Utilities** | `PaymentCalculator` (ver regla de dominio). |
+| **Services** | Notificaciones, WhatsApp, CSV. Sin SwiftUI. |
+
+KPIs ignoran búsqueda/filtros. Sedes = catálogo fijo. iPhone + `NavigationStack`.
+
+```swift
+// DON'T — View que suma deuda y Model con Double + Pago hijo
+struct Row: View {
+    var body: some View { Text("\(alumno.importeCol1 + alumno.importeCol2)") }
+}
+
+// DO — View tonta; Model solo datos; VM agrega
+@Model
+final class Alumno {
+    var matricula: String
+    var importeCol1: Decimal
+    var col1Pagada: Bool
+    var certificacionAbonado: Decimal
+    var fechaInscripcion: Date
+}
+
+@Observable
+final class DashboardViewModel {
+    func kpis(from alumnos: [Alumno], now: Date) -> CarteraKPIs { /* calculator */ }
+}
+```

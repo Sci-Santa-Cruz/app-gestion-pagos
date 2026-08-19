@@ -1,0 +1,27 @@
+---
+description: Swift — tipado estricto, Optionals con guard/if let, prohibido force unwrap
+alwaysApply: true
+---
+
+# Reglas de Swift
+
+- Tipado explícito en APIs de dominio. Nada de `Any` para alumno, dinero o fechas.
+- Optionals: `guard let`, `if let` o `guard let … else`. **Prohibido** `!`, `try!`, `as!` en código de app.
+- `URL(string:)` siempre con `guard let`. Nunca `URL(string: "…")!`.
+- Dinero: `Decimal` o `Int` (centavos). Prohibido `Double`/`Float` para montos.
+- Errores de negocio (matrícula duplicada, CSV) con `enum` + mensaje en español.
+- Excepción de `!`: solo en tests, constantes conocidas (`TimeZone(identifier: "America/Mexico_City")!`).
+
+```swift
+// DON'T
+let url = URL(string: "https://wa.me/\(digits)")!
+let alumno = alumnos.first!
+try! modelContext.save()
+var colegiatura: Double = 1200
+
+// DO
+guard let url = URL(string: "https://wa.me/\(digits)") else { return }
+guard let alumno = alumnos.first else { return }
+do { try modelContext.save() } catch { errorMessage = "No se pudo guardar." }
+var colegiatura: Decimal = 1_200
+```
